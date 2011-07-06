@@ -1,0 +1,14 @@
+name: RulesBroadcast
+main: com.f16gaming.rulesbroadcast.RulesBroadcast
+version: 0.5
+
+commands:
+  sendrules:
+    description: Send the server rules to the specified player
+    usage: |
+      /<command> [player] - Send rules to [player]
+      /<command> all - Broadcast rules on server
+  reloadrules:
+    description: Reload the rules list
+    usage: |
+      /<command> - Reload the rules list
