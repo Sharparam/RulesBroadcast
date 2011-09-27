@@ -8,19 +8,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.command.ColouredConsoleSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import com.nijiko.permissions.PermissionHandler;
-import com.nijikokun.bukkit.Permissions.Permissions;
 
 public class RulesBroadcast extends JavaPlugin {
 	RulesBroadcastLogger log = new RulesBroadcastLogger(Logger.getLogger("Minecraft"), "RulesBroadcast");
 	RulesBroadcastFileReader fileReader = new RulesBroadcastFileReader();
-	private PermissionHandler permissionHandler;
-	private boolean hasPermissions = false;
+	private double version = 1.0;
 	private String permString = "rulesbroadcast";
+	private String bcastPerm = "rulesbroadcast.all";
 	private String permReload = "rulesbroadcast.reload";
 	String pluginDir = "plugins/RulesBroadcast/";
 	File messageFile = new File(pluginDir + "rules.txt");
@@ -61,13 +56,11 @@ public class RulesBroadcast extends JavaPlugin {
 			this.setEnabled(false);
 			return;
 		}
-		//Check for permissions
-		setupPermissions();
-		log.info(String.format("v%s by F16Gaming has been enabled!", 0.01));
+		log.info(String.format("v%s by F16Gaming has been enabled!", version));
 	}
 	
 	public void onDisable() {
-		log.info(String.format("v%s by F16Gaming has been disabled!", 0.01));
+		log.info(String.format("v%s by F16Gaming has been disabled!", version));
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
@@ -84,20 +77,14 @@ public class RulesBroadcast extends JavaPlugin {
 		
 		if (commandLabel.equalsIgnoreCase("sendrules")) {
 			if (player != null) {
-				if (hasPermission(player, permString)) {
+				if (player.hasPermission(permString)) {
 					if (args.length == 1) {
-						if (!args[0].equalsIgnoreCase("all")) {
-							retVal = true;
-							Player toPly = this.getServer().getPlayer(args[0]);
-							if (sendRules(toPly)) {
-								player.sendMessage("\u00a72Sent rules to \u00a76" + toPly.getName());
-							} else {
-								player.sendMessage("\u00a7cInvalid player name");
-							}
+						retVal = true;
+						Player toPly = this.getServer().getPlayer(args[0]);
+						if (sendRules(toPly)) {
+							player.sendMessage("\u00a72Sent rules to \u00a76" + toPly.getName());
 						} else {
-							retVal = true;
-							broadcastRules();
-							player.sendMessage("\u00a72Broadcasted rules to server");
+							player.sendMessage("\u00a7cInvalid player name");
 						}
 					}
 				} else {
@@ -106,25 +93,29 @@ public class RulesBroadcast extends JavaPlugin {
 				}
 			} else {
 				if (args.length == 1) {
-					if (!args[0].equalsIgnoreCase("all")) {
-						retVal = true;
-						Player toPly = this.getServer().getPlayer(args[0]);
-						if (sendRules(toPly)) {
-						} else {
-							log.info("Invalid player name");
-						}
-					} else {
-						retVal = true;
-						broadcastRules();
+					retVal = true;
+					Player toPly = this.getServer().getPlayer(args[0]);
+					if (!sendRules(toPly)) {
+						log.info("Invalid player name");
 					}
 				}
 			}
-		}
-		
-		if (commandLabel.equalsIgnoreCase("reloadrules")) {
+		} else if (commandLabel.equalsIgnoreCase("broadcastrules")) {
 			retVal = true;
 			if (player != null) {
-				if (hasPermission(player, permReload)) {
+				if (player.hasPermission(bcastPerm)) {
+					broadcastRules();
+					player.sendMessage("\u00a72Broadcasted rules to server");
+				} else {
+					player.sendMessage("\u00a7cYou are not allowed to use this command");
+				}
+			} else {
+				broadcastRules();
+			}
+		} else if (commandLabel.equalsIgnoreCase("reloadrules")) {
+			retVal = true;
+			if (player != null) {
+				if (player.hasPermission(permReload)) {
 					if (reloadRules()) {
 						player.sendMessage("\u00a72Rules have been reloaded!");
 					} else {
@@ -174,32 +165,5 @@ public class RulesBroadcast extends JavaPlugin {
 	
 	private String[] getRules() throws IOException {
 		return fileReader.readAllLines(messageFile.getPath());
-	}
-	
-	private void setupPermissions() {
-		Plugin permissionsPlugin = this.getServer().getPluginManager().getPlugin("Permissions");
-		if (permissionHandler == null) {
-			if (permissionsPlugin != null) {
-				PluginDescriptionFile permPDF = permissionsPlugin.getDescription();
-				permissionHandler = ((Permissions) permissionsPlugin).getHandler();
-				hasPermissions = true;
-				log.info("Permissions v" + permPDF.getVersion() + " found, permissions support enabled!");
-			} else {
-				log.info("Permissions system not detected, defaulting to isOp");
-			}
-		}
-	}
-	
-	private boolean hasPermission(Player player, String permission) {
-		boolean retVal = false;
-		if (hasPermissions) {
-			if (permissionHandler.has(player, permission))
-				retVal = true;
-		}
-		else {
-			if (player.isOp())
-				retVal = true;
-		}
-		return retVal;
 	}
 }

@@ -11,6 +11,7 @@ public class RulesBroadcastFileReader {
 		BufferedReader br = new BufferedReader(new FileReader(fileName));
 		while ((line = br.readLine()) != null) {
 			line = line.replace('&', '\u00a7');
+			line = line.replace("\u00a7\u00a7", "&");
 			sb.append(line);
 			sb.append('\n');
 		}

@@ -1,14 +1,37 @@
 name: RulesBroadcast
 main: com.f16gaming.rulesbroadcast.RulesBroadcast
-version: 0.5
+version: 1.0
 
 commands:
   sendrules:
     description: Send the server rules to the specified player
+    permission: rulesbroadcast
     usage: |
       /<command> [player] - Send rules to [player]
-      /<command> all - Broadcast rules on server
+  broadcastrules:
+    description: Broadcasts rules to the whole server
+    aliases: [bcastrules]
+    permission: rulesbroadcast.all
+    usage: |
+      /<command> - Broadcast rules to server
   reloadrules:
     description: Reload the rules list
+    permission: rulesbroadcast.reload
     usage: |
       /<command> - Reload the rules list
+permissions:
+  rulesbroadcast.*:
+    description: Gives access to all RulesBroadcast commands
+    children:
+      rulesbroadcast: true
+      rulesbroadcast.all: true
+      rulesbroadcast.reload: true
+  rulesbroadcast:
+    description: Gives access to /sendrules <player>
+    default: op
+  rulesbroadcast.all:
+    description: Gives access to /sendrules all
+    default: op
+  rulesbroadcast.reload:
+    description: Gives access to /reloadrules
+    default: op
